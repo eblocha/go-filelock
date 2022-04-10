@@ -124,6 +124,5 @@ func (ctx *LockContext) WithPermissions(permissions map[string]bool)func() {
 	}
 	wg.Wait()
 
-	// Execute the provided function
 	return release
 }
