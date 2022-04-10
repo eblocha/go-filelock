@@ -1,3 +1,3 @@
-module rwlock
+module filelock
 
 go 1.17

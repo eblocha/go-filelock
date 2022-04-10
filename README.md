@@ -1,18 +1,20 @@
-# RWLock
+# filelock
 
 This is a practice module to teach myself golang. It's a reader-writer lock for locking files.
 
 The package allows for aqcuiring multiple permissions before executing a function, then releases them after running the function.
 
+## Example
+
 ```go
 package main
 
 import (
-  "rwlock"
+  "filelock"
 )
 
 func main() {
-    var ctx rwlock.LockContext
+    var ctx filelock.LockContext
 
     permissions := make(map[string]bool){
       "file-1": true,  // true means write permissions
@@ -26,3 +28,7 @@ func main() {
     ctx.WithPermissions(permissions, doSomething)
 }
 ```
+
+## Use Case
+
+The primary use case is when you need to read from one file, use the information to write something to another file, and these actions need to happen atomically. You can acquire read permissions and write permissions before doing anything at all.

@@ -1,4 +1,4 @@
-package rwlock
+package filelock
 
 import (
 	"sync"
@@ -11,7 +11,8 @@ type FileLock struct {
 	mutex   sync.RWMutex
 }
 
-// A file locking context. Usually there will be only 1 of these
+// A file locking context. Usually there will be only 1 of these. 
+// This represents a collection of files with locks.
 type LockContext struct {
 	mapLock sync.RWMutex
 	locks   map[string]*FileLock
@@ -40,13 +41,13 @@ func (ctx *LockContext) getOrCreateLock(name string) *FileLock {
 
 	// Acquire the lock to read current file locks
 	ctx.mapLock.RLock()
-	defer ctx.mapLock.RUnlock()
 
 	lock, ok := ctx.locks[name]
 
 	// Inrement the counter if it exists, or create a new lock with 1 interest
 	if ok {
 		lock.counter++
+		ctx.mapLock.RUnlock()
 	} else {
 		// We need to write to the file map
 		ctx.mapLock.RUnlock()
