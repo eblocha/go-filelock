@@ -14,7 +14,7 @@ type FileLock struct {
 // A file locking context. Usually there will be only 1 of these. 
 // This represents a collection of files with locks.
 type LockContext struct {
-	mapLock sync.RWMutex
+	mapLock sync.Mutex
 	locks   map[string]*FileLock
 }
 
@@ -28,8 +28,8 @@ func NewContext() *LockContext {
 func (ctx *LockContext) cleanup(name string) {
 
 	// Lock the mapping of file name to file lock
-	ctx.mapLock.RLock()
-	defer ctx.mapLock.RUnlock()
+	ctx.mapLock.Lock()
+	defer ctx.mapLock.Unlock()
 
 	lock, ok := ctx.locks[name]
 
@@ -46,19 +46,15 @@ func (ctx *LockContext) cleanup(name string) {
 func (ctx *LockContext) getOrCreateLock(name string) *FileLock {
 
 	// Acquire the lock to read current file locks
-	ctx.mapLock.RLock()
+	ctx.mapLock.Lock()
+	defer ctx.mapLock.Unlock()
 
 	lock, ok := ctx.locks[name]
 
 	// Inrement the counter if it exists, or create a new lock with 1 interest
 	if ok {
 		lock.counter++
-		ctx.mapLock.RUnlock()
 	} else {
-		// We need to write to the file map
-		ctx.mapLock.RUnlock()
-		ctx.mapLock.Lock()
-		defer ctx.mapLock.Unlock()
 		lock = &FileLock{counter: 1}
 		ctx.locks[name] = lock
 	}
