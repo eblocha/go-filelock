@@ -18,7 +18,8 @@ func TestFileLockWrites(t *testing.T) {
 			"a": true,
 		}
 
-		defer ctx.WithPermissions(permissions)()
+		release := ctx.WithPermissions(permissions)
+		defer release()
 		time.Sleep(10 * time.Millisecond)
 		arr = append(arr, val)
 	}
@@ -50,7 +51,8 @@ func TestFileLockStarvation(t *testing.T) {
 			"a": true,
 		}
 
-		defer ctx.WithPermissions(permissions)()
+		release := ctx.WithPermissions(permissions)
+		defer release()
 		time.Sleep(10 * time.Millisecond)
 		arr = append(arr, 1)
 	}
@@ -61,7 +63,8 @@ func TestFileLockStarvation(t *testing.T) {
 			"a": false,
 		}
 
-		defer ctx.WithPermissions(permissions)()
+		release := ctx.WithPermissions(permissions)
+		defer release()
 		time.Sleep(10 * time.Millisecond)
 		arr = append(arr, 0)
 	}
