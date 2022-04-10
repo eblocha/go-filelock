@@ -18,6 +18,12 @@ type LockContext struct {
 	locks   map[string]*FileLock
 }
 
+func NewContext() *LockContext {
+	return &LockContext{
+		locks: make(map[string]*FileLock),
+	}
+}
+
 // Clean up the locks map after releasing for a path name
 func (ctx *LockContext) cleanup(name string) {
 
@@ -84,7 +90,7 @@ func (ctx *LockContext) AcquireWrite(name string) func() {
 
 // Execute a function with the specified permissions.
 // Permissions are a mapping of lock name to a boolean which is true for write permission, or false for read
-func (ctx *LockContext) WithPermissions(permissions map[string]bool, f func()) {
+func (ctx *LockContext) WithPermissions(permissions map[string]bool)func() {
 	// Wait group for acquiring multiple permissions
 	var wg sync.WaitGroup
 
@@ -92,7 +98,7 @@ func (ctx *LockContext) WithPermissions(permissions map[string]bool, f func()) {
 	var lock sync.Mutex
 
 	// A mapping of file name to a function to release permissions
-	var releasers map[string]func()
+	releasers := make(map[string]func())
 
 	// acquire permissions for a file and add its releaser
 	acquire := func(name string, writer bool) {
@@ -108,12 +114,12 @@ func (ctx *LockContext) WithPermissions(permissions map[string]bool, f func()) {
 		}
 	}
 
-	defer func() {
+	release := func() {
 		// Release all permissions
 		for _, releaser := range releasers {
 			releaser()
 		}
-	}()
+	}
 
 	// Acquire permissions concurrently
 	wg.Add(len(permissions))
@@ -123,5 +129,5 @@ func (ctx *LockContext) WithPermissions(permissions map[string]bool, f func()) {
 	wg.Wait()
 
 	// Execute the provided function
-	f()
+	return release
 }

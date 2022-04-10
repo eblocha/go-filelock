@@ -14,18 +14,16 @@ import (
 )
 
 func main() {
-    var ctx filelock.LockContext
+    ctx := filelock.NewContext()
 
-    permissions := make(map[string]bool){
+    permissions := map[string]bool{
       "file-1": true,  // true means write permissions
       "file-2": false, // false means read permissions
     }
-    
-    doSomething := func() {
-      // access the files, do something that needs to happen atomically
-    }
 
-    ctx.WithPermissions(permissions, doSomething)
+    release = ctx.WithPermissions(permissions, doSomething)
+    defer release()
+    // access the files, do something that needs to happen atomically
 }
 ```
 
