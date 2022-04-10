@@ -107,6 +107,13 @@ func (ctx *LockContext) WithPermissions(permissions map[string]bool, f func()) {
 		}
 	}
 
+	defer func() {
+		// Release all permissions
+		for _, releaser := range releasers {
+			releaser()
+		}
+	}()
+
 	// Acquire permissions concurrently
 	wg.Add(len(permissions))
 	for name, writer := range permissions {
@@ -116,10 +123,4 @@ func (ctx *LockContext) WithPermissions(permissions map[string]bool, f func()) {
 
 	// Execute the provided function
 	f()
-
-	// Release all permissions
-	for _, releaser := range releasers {
-		releaser()
-	}
-
 }
